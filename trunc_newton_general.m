@@ -202,8 +202,6 @@ while k < kmax && gradfk_norm > tolgrad
     
     if bt == btmax && fnew > farmijo(fk, alpha, c1_gradfk_pk)
         disp('Backtracking strategy could not find a suitable steplength');
-        k = k + 1;
-        btseq(k) = bt; 
         break
     end
 
