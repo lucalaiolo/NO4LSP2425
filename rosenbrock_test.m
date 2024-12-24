@@ -26,7 +26,7 @@ x0_2 = [-1.2; 1];
 
 % Default choices for the truncated Newton method
 kmax = 10000;
-tolgrad = 1e-8;
+tolgrad = 1e-7;
 pcg_maxit = 500;
 c1 = 1e-4;
 rho = 0.8;
@@ -76,7 +76,7 @@ disp('Test 1: x0 = [1.2, 1.2]')
 disp('**** TRUNCATED NEWTON (BACKTRACK + FLAG): START *****')
 [xk_tn_1, fk_tn_1, gradfk_norm_tn_1, k_tn_1, xseq_tn_1, btseq_tn_1, flag_tn_1, ...
     pcg_iterseq_tn_1] = trunc_newton_general(x0_1, f, gradf, Hessf, kmax, ...
-        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt);
+        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
 disp('**** TRUNCATED NEWTON: FINISHED *****')
 disp('**** TRUNCATED NEWTON: RESULTS *****')
 disp('************************************')
@@ -92,7 +92,7 @@ disp('Test 2: x0 = [-1.2; 1]')
 disp('**** TRUNCATED NEWTON (BACKTRACK + FLAG): START *****')
 [xk_tn_2, fk_tn_2, gradfk_norm_tn_2, k_tn_2, xseq_tn_2, btseq_tn_2, flag_tn_2, ...
     pcg_iterseq_tn_2] = trunc_newton_general(x0_2, f, gradf, Hessf, kmax, ...
-        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt);
+        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
 disp('**** TRUNCATED NEWTON: FINISHED *****')
 disp('**** TRUNCATED NEWTON: RESULTS *****')
 disp('************************************')

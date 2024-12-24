@@ -1,6 +1,7 @@
 function [xk, fk, gradfk_norm, k, xseq, btseq, flag, pcg_iterseq] = ...
     trunc_newton_general(x0, f, gradf, Hessf, kmax, tolgrad, pcg_maxit, ...
-        fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt)
+        fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, use_Hess_sparsity, ...
+        build_sparse_Hessf)
 % TRUNCATED NEWTON METHOD WITH BACKTRACKING
 %
 % INPUTS
@@ -23,6 +24,16 @@ function [xk, fk, gradfk_norm, k, xseq, btseq, flag, pcg_iterseq] = ...
 %   implementation. Otherwise, the function handle Hessf is used. I
 % h: finite differences "step"
 % adapt: boolean value. To understand more about this, read findiff_grad
+% use_Hess_sparsity: boolean value. If true, the approximation of the Hessian
+%   will be done using the function handle build_sparse_Hessf. IMPORTANT:
+%   IF WE WANT TO USE A MATRIX-FREE METHOD (case FDHess = 'MF') THIS
+%   PARAMETER MUST BE SET TO FALSE (since we are not actually building the
+%   Hessian matrix) !!!!!! 
+% build_sparse_Hessf: function handle that takes as input gradf (or an
+%   approximation of it), x (column vector in R^n) and h and returns an
+%   approximation of the Hessian of f computed at x and stored as a sparse
+%   matrix (RECOMMENDED FOR LARGE SCALE PROBLEMS) (this function is PROBLEM
+%   DEPENDENT)
 %
 % OUTPUTS
 % xk: last vector xk computed by the iterative method
@@ -49,33 +60,38 @@ switch FDgrad
         gradf = @(x) findiff_grad(f, x, h, 'c', adapt);
 end
 
-% IN THE CASE OF APPROXIMATED GRADIENT, Hessf CAN BE APPROXIMATED ONLY WITH
-% findiff_Hess
-
-if isequal(FDgrad, 'fw') || isequal(FDgrad, 'c')
-    switch FDHess
-        case 'c'
-            Hessf = @(x) findiff_Hess(f, x, sqrt(h), adapt);
-        case 'MF'
-            % MATRIX FREE IMPLEMENTATION
-            Hessf_pk = @(x, p) (gradf(x + h*p)-gradf(x)) / h;
-    end
-else 
-    switch FDHess
-        case 'c'
-            % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_Hess
-            Hessf = @(x) findiff_Hess(f, x, sqrt(h), adapt);
-        case 'Jfw'
-            % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_J
-            % [with option 'Jfw']
-            Hessf = @(x) findiff_J(gradf, x, h, 'Jfw', true, adapt);
-        case 'Jc'
-            % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_J
-            % [with option 'Jc']
-            Hessf = @(x) findiff_J(gradf, x, h, 'Jc', true, adapt);
-        case 'MF'
-            % MATRIX FREE IMPLEMENTATION
-            Hessf_pk = @(x, p) (gradf(x + h*p)-gradf(x)) / h;
+if use_Hess_sparsity
+    Hessf = @(x) build_sparse_Hessf(gradf, x);
+    % !!! IF WE WANT TO USE A MATRIX-FREE METHOD, THIS PARAMETER MUST BE
+    % SET TO FALSE !!!
+else
+    % General purpose finite differencing OR Matrix-free implementation
+    % (recommended for very large scale problems)
+    if isequal(FDgrad, 'fw') || isequal(FDgrad, 'c')
+        switch FDHess
+            case 'c'
+                Hessf = @(x) findiff_Hess(f, x, sqrt(h), adapt);
+            case 'MF'
+                % MATRIX FREE IMPLEMENTATION
+                Hessf_pk = @(x, p) (gradf(x + h*p)-gradf(x)) / h;
+        end
+    else 
+        switch FDHess
+            case 'c'
+                % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_Hess
+                Hessf = @(x) findiff_Hess(f, x, sqrt(h), adapt);
+            case 'Jfw'
+                % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_J
+                % [with option 'Jfw']
+                Hessf = @(x) findiff_J(gradf, x, h, 'Jfw', true, adapt);
+            case 'Jc'
+                % OVERWRITE Hessf WITH F. HANDLE THAT USES findiff_J
+                % [with option 'Jc']
+                Hessf = @(x) findiff_J(gradf, x, h, 'Jc', true, adapt);
+            case 'MF'
+                % MATRIX FREE IMPLEMENTATION
+                Hessf_pk = @(x, p) (gradf(x + h*p)-gradf(x)) / h;
+        end
     end
 end
 
@@ -84,7 +100,8 @@ xk = x0;
 fk = f(x0);
 gradfk = gradf(xk);
 
-xseq = zeros(length(x0), kmax);
+xseq = 0;
+%xseq = zeros(length(x0), kmax);
 btseq = zeros(1, kmax);
 pcg_iterseq = zeros(1, kmax);
 
@@ -212,15 +229,15 @@ while k < kmax && gradfk_norm > tolgrad
 
     k = k + 1;
 
-    xseq(:, k) = xk;
+    %xseq(:, k) = xk;
     btseq(k) = bt;
 
 end
 
 flag = ['Procedure stopped in ', num2str(k), ... 
     ' steps, with gradient norm ', num2str(gradfk_norm)];
-xseq = xseq(:, 1:k);
-xseq = [x0, xseq];
+%xseq = xseq(:, 1:k);
+%xseq = [x0, xseq];
 btseq = btseq(1:k);
 pcg_iterseq = pcg_iterseq(1:k);
 

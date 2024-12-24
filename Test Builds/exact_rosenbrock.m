@@ -14,14 +14,19 @@ function [f, gradf, Hessf] = exact_rosenbrock()
 %   Hessf(x) is a n x n sparse matrix)
 %
 
-f = @(x) sum(100 .* (x(2:end) - x(1:end-1).^2).^2 + (1 - x(1:end-1)).^2);
+f = @(x) (sum(100 .* (x(2:end,:) - x(1:end-1,:).^2).^2 + (1 - x(1:end-1,:)).^2))';
+% This way, f can take multiple vectors
 
 gradf = @(x) [
-    -400 * x(1) * x(2) + 400 * x(1)^3 - 2 + 2 * x(1);
-    202 .* x(2:end-1) - 200 .* x(1:end-2).^2 - 400 .* x(2:end-1) .* x(3:end) - ...
-        2 + 400 * x(2:end-1).^3;
-    200 * x(end) - 200 * x(end-1)^2;
+    x(1) * 400 * (x(1)^2 - x(2)) + 2*x(1) - 2;
+    x(2:end-1).*(202 + 400 .* (x(2:end-1).^2 - x(3:end))) - 2 - 200 .* x(1:end-2).^2 ;
+    200 * (x(end) - x(end-1)^2);
 ];
+
+%{
+202 .* x(2:end-1) - 200 .* x(1:end-2).^2 - 400 .* x(2:end-1) .* x(3:end) - ...
+        2 + 400 * x(2:end-1).^3
+%}
 
 % Remark: the Rosenbrock function is smooth
 % As a consequence, Hessf is symmetric

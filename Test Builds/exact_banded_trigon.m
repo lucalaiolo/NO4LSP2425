@@ -14,8 +14,8 @@ function [f, gradf, Hessf] = exact_banded_trigon()
 %   (specifically, Hessf(x) is a n x n sparse matrix)
 %
 
-f = @(x) 1 - cos(x(1)) - sin(x(2)) + sum((2:(n-1))' * (1 - cos(x(2:(n-1))) + ...
-        sin(x(1:(n-2))) - sin(x(3:n)) )) + n * (1 - cos(x(n))  + sin(x(n-1))); 
+f = @(x) 1 - cos(x(1)) - sin(x(2)) + sum((2:(length(x)-1))' .* (1 - cos(x(2:(end-1))) + ...
+        sin(x(1:(end-2))) - sin(x(3:end)) )) + length(x) * (1 - cos(x(end))  + sin(x(end-1))); 
 
 gradf = @(x) [
     (1:(length(x)-1))' .* sin(x(1:(end-1))) + 2 .* cos(x(1:(end-1)));

@@ -30,11 +30,12 @@ gradfx = zeros(n, 1);
 switch type
     case 'fw'
         % Forward differences approximation
+        fx = f(x);
         for i = 1:n
             xh = x;
             step = fstep(x, i);
             xh(i) = xh(i) + step;
-            gradfx(i) = (f(xh) - f(x)) / step;
+            gradfx(i) = (f(xh) - fx) / step;
         end
 
     case 'c'
@@ -51,11 +52,12 @@ switch type
     otherwise
         % Default option
         % Forward differences approximation
+        fx = f(x);
         for i = 1 : n
             xh = x;
             step = fstep(x, i);
             xh(i) = xh(i) + step;
-            gradfx(i) = (f(xh) - f(x)) / step;
+            gradfx(i) = (f(xh) - fx) / step;
         end
 
 end
