@@ -33,7 +33,11 @@ switch type
         fx = f(x);
         for i = 1:n
             xh = x;
-            step = fstep(x, i);
+            step = fstep(x, i); % we should check whether x(i) is zero or not
+            % x(i) is zero if and only if step is zero (if adapt is true)
+            if step == 0
+                step = h; % we must avoid dividing by zero
+            end
             xh(i) = xh(i) + step;
             gradfx(i) = (f(xh) - fx) / step;
         end
@@ -44,6 +48,9 @@ switch type
             xh_plus = x;
             xh_minus = x;
             step = fstep(x, i); % could have used xh_minus, equivalent
+            if step == 0
+                step = h;
+            end
             xh_plus(i) = xh_plus(i) + step;
             xh_minus(i) = xh_minus(i) - step;
             gradfx(i) = (f(xh_plus) - f(xh_minus)) / (2*step);
@@ -56,6 +63,9 @@ switch type
         for i = 1 : n
             xh = x;
             step = fstep(x, i);
+            if step == 0
+                step = h;
+            end
             xh(i) = xh(i) + step;
             gradfx(i) = (f(xh) - fx) / step;
         end

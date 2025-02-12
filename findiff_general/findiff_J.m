@@ -36,6 +36,9 @@ switch type
         for i = 1:n
             xh = x;
             step = fstep(x, i);
+            if step == 0
+                step = h;
+            end
             xh(i) = xh(i) + step;
             Jfx(:, i) = (F(xh) - F(x)) / step;
         end
@@ -46,6 +49,9 @@ switch type
             xh_plus = x;
             xh_minus = x;
             step = fstep(x, i);
+            if step == 0
+                step = h;
+            end
             xh_plus(i) = xh_plus(i) + step;
             xh_minus(i) = xh_minus(i) - step;
             Jfx(:, i) = (F(xh_plus) - F(xh_minus)) / (2 * step);
@@ -57,6 +63,9 @@ switch type
             xh_plus = x;
             xh_minus = x;
             step = fstep(x, i);
+            if step == 0
+                step = h;
+            end
             xh_plus(i) = xh_plus(i) + step;
             xh_minus(i) = xh_minus(i) - step;
             Jfx(:, i) = (F(xh_plus) - F(xh_minus)) / 2 * step;

@@ -26,13 +26,13 @@ x0_2 = [-1.2; 1];
 
 % Default choices for the truncated Newton method
 kmax = 10000;
-tolgrad = 1e-7;
-pcg_maxit = 500;
+tolgrad = 1e-10;
+pcg_maxit = 200;
 c1 = 1e-4;
 rho = 0.8;
 btmax = 75;
 h = sqrt(eps);
-adapt = true; % To understand more about this, read findiff_grad (for example)
+adapt = false; % To understand more about this, read findiff_grad (for example)
 
 fterms_choice = input( ...
     'Choose a forcing term (1 for linear, 2 for superlinear, 3 for quadratic): ');
@@ -64,19 +64,17 @@ disp('Jfw -> forward difference approximation of Hessf as the Jacobian of the gr
 disp('Jc -> centered difference approximation of Hessf as the Jacobian of the gradient');
 disp('MF -> matrix-free implementation of the iterative method')
 disp('other -> no approximation');
-disp('!!! ATTENTION !!!')
-disp('If FDgrad =  fw or FDgrad = c, the only possible choices are c and MF.');
-disp('If a different option is selected, no approximation will be used.');
 FDHess = input('Enter your choice: ', 's');
 disp(' ');
 
 %% Run the tests
+%{
 disp('Test 1: x0 = [1.2, 1.2]')
 
 disp('**** TRUNCATED NEWTON (BACKTRACK + FLAG): START *****')
-[xk_tn_1, fk_tn_1, gradfk_norm_tn_1, k_tn_1, xseq_tn_1, btseq_tn_1, flag_tn_1, ...
-    pcg_iterseq_tn_1] = trunc_newton_general(x0_1, f, gradf, Hessf, kmax, ...
-        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
+[xk_tn_1, fk_tn_1, gradfk_norm_tn_1, ~, k_tn_1, xseq_tn_1, ~, flag_tn_1] = ...
+    trunc_newton_general(x0_1, f, gradf, Hessf, kmax, tolgrad, pcg_maxit, ...
+        fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
 disp('**** TRUNCATED NEWTON: FINISHED *****')
 disp('**** TRUNCATED NEWTON: RESULTS *****')
 disp('************************************')
@@ -87,12 +85,12 @@ disp(flag_tn_1)
 disp('************************************')
 
 disp(' ')
-
+%}
 disp('Test 2: x0 = [-1.2; 1]')
 disp('**** TRUNCATED NEWTON (BACKTRACK + FLAG): START *****')
-[xk_tn_2, fk_tn_2, gradfk_norm_tn_2, k_tn_2, xseq_tn_2, btseq_tn_2, flag_tn_2, ...
-    pcg_iterseq_tn_2] = trunc_newton_general(x0_2, f, gradf, Hessf, kmax, ...
-        tolgrad, pcg_maxit, fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
+[xk_tn_2, fk_tn_2, gradfk_norm_tn_2, ~, k_tn_2, xseq_tn_2, ~, flag_tn_2] = ...
+    trunc_newton_general(x0_2, f, gradf, Hessf, kmax, tolgrad, pcg_maxit, ...
+        fterms, c1, rho, btmax, FDgrad, FDHess, h, adapt, false, 0);
 disp('**** TRUNCATED NEWTON: FINISHED *****')
 disp('**** TRUNCATED NEWTON: RESULTS *****')
 disp('************************************')
@@ -106,25 +104,59 @@ disp('************************************')
 
 f_meshgrid = @(X,Y)reshape(f([X(:),Y(:)]'),size(X));
 % Creation of the meshgrid for the contour-plot
-[X, Y] = meshgrid(linspace(-6, 6, 500), linspace(-6, 6, 500));
+[X, Y] = meshgrid(linspace(-6, 6, 1000), linspace(-6, 6, 1000));
 % Computation of the values of f for each point of the mesh
 Z = f_meshgrid(X, Y);
+%{
 fig1 = figure();
-% Contour plot with curve levels for each point in xseq
-[C1, ~] = contour(X, Y, Z, [1, 10, 50, 100, 200, 500, 1000, 1000:1000:9000]);
+s = 1:12;
+[C1, ~] = contour(X, Y, Z, [10.^-s, 1 10 100 200 500 1000 2000 4000], '-k');
 hold on
-% plot of the points in xseq_sd
-p = plot(xseq_tn_1(1, :), xseq_tn_1(2, :), '--*');
-title('Test 1- Truncated Newton')
-legend(p, 'xseq')
+plot(xseq_tn_1(1, :), xseq_tn_1(2, :), 'r--*');
+title('Test 1 - Truncated Newton; x0 = [1.2, 1.2]')
 hold off;
 
+gradfk_norm_seq_tn1 = vecnorm(gradf(xseq_tn_1));
 fig2 = figure();
+semilogy(gradfk_norm_seq_tn1, "bo", "MarkerSize", 3, "MarkerFaceColor", "b");
+xlabel('Iteration')
+ylabel('Gradient norm')
+grid on;
+title(['Final gradient norm: ' num2str(gradfk_norm_tn_1)]);
+hold off;
+
+fig3 = figure();
+semilogy(f(xseq_tn_1), "bo", "MarkerSize", 3, "MarkerFaceColor", "b");
+xlabel('Iteration')
+ylabel('Function value')
+grid on;
+title(['Final function value: ' num2str(fk_tn_1)]);
+hold off;
+%}
+
+fig4 = figure();
 % Contour plot with curve levels for each point in xseq
-[C1, ~] = contour(X, Y, Z, [1, 10, 50, 100, 200, 500, 1000, 1000:1000:9000]);
+s = 1:12;
+[C1, ~] = contour(X, Y, Z, [10.^-s, 1 10 100 200 500 1000 2000 4000], '-k');
 hold on
 % plot of the points in xseq_sd
-p = plot(xseq_tn_2(1, :), xseq_tn_2(2, :), '--*');
-title('Test 2 - Truncated Newton')
-legend(p, 'xseq')
+plot(xseq_tn_2(1, :), xseq_tn_2(2, :), 'r--*');
+title('Test 2 - Truncated Newton; x0 = [-1.2, 1]')
+hold off;
+
+gradfk_norm_seq_tn2 = vecnorm(gradf(xseq_tn_2));
+fig5 = figure();
+semilogy(gradfk_norm_seq_tn2, "bo", "MarkerSize", 3, "MarkerFaceColor", "b");
+xlabel('Iteration')
+ylabel('Gradient norm')
+grid on;
+title(['Final gradient norm: ' num2str(gradfk_norm_tn_2)]);
+hold off;
+
+fig6 = figure();
+semilogy(f(xseq_tn_2), "bo", "MarkerSize", 3, "MarkerFaceColor", "b");
+xlabel('Iteration')
+ylabel('Function value')
+grid on;
+title(['Final function value: ' num2str(fk_tn_2)]);
 hold off;

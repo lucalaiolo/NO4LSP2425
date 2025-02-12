@@ -35,12 +35,18 @@ for i=1:n
     xh_plus = x;
     xh_minus = x;
     step_i = fstep(x, i);
+    if step_i == 0
+        step_i = h;
+    end
     xh_plus(i) = xh_plus(i) + step_i;
     xh_minus(i) = xh_minus(i) - step_i;
 
     Hessfx(i,i) = (f(xh_plus) - 2*f(x) + f(xh_minus))/(step_i)^2;
     for j=(i+1):n
         step_j = fstep(x, j);
+        if step_j == 0
+            step_j = h;
+        end
         xh_plus_ij = x;
         xh_plus_ij([i,j]) = xh_plus_ij([i,j]) + [step_i; step_j];
         xh_plus_iterate = x;

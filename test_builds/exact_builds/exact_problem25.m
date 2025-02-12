@@ -1,7 +1,7 @@
-function [f, gradf, Hessf] = exact_ext_rosenbrock()
-% exact_ext_rosenbrock
+function [f, gradf, Hessf] = exact_problem25()
+% exact_problem25
 %
-% Computes the extended Rosenbrock function in R^n (n > 2, n EVEN), its gradient 
+% Computes the extended Rosenbrock function in R^n, its gradient 
 % and its Hessian (in an exact way)
 %
 % Outputs
@@ -14,8 +14,8 @@ function [f, gradf, Hessf] = exact_ext_rosenbrock()
 %   (specifically, Hessf(x) is a n x n sparse matrix)
 %
 
-f = @(x) 0.5 * (sum(100 .* (x(1:2:end).^2 - x(2:2:end)).^2) + ... 
-        sum((x(1:2:end) - 1).^2));
+f = @(x) 0.5 * (sum(100 .* (x(1:2:end-1, :).^2 - x(2:2:end, :)).^2) + ... 
+        sum((x(1:2:end-1, :) - 1).^2)) + 0.5 * mod(length(x(:,1)), 2) * 100 * x(end)^4;
 
 gradf = @(x) compute_gradient(x);
 
@@ -29,10 +29,24 @@ end
 function gradf_build = compute_gradient(x)
 
 n = length(x);
-gradf_build = zeros(n, 1);
+p = mod(n, 2);
 
-gradf_build(1:2:n) = 200 .* x(1:2:n).^3 - 200 .* x(1:2:n) .* x(2:2:n) + x(1:2:n) - 1;
-gradf_build(2:2:n) = -100 .* x(1:2:(n-1)).^2 + 100 .* x(2:2:n);
+gradf_build = zeros(n, 1);
+switch p
+    case 0
+        % n is even
+        gradf_build(1:2:n) = 200 .* x(1:2:n).^3 - 200 .* x(1:2:n) .* x(2:2:n) + x(1:2:n) - 1;
+        gradf_build(2:2:n) = -100 .* x(1:2:(n-1)).^2 + 100 .* x(2:2:n);
+    case 1
+        % n is odd --> n+1 is even
+        gradf_build = [gradf_build; 0];
+        x_aug = [x; 0];
+        gradf_build(1:2:end) = 200 .* x_aug(1:2:end).^3 - 200 .* x_aug(1:2:end) ...
+            .* x_aug(2:2:end) + x_aug(1:2:end) - 1;
+        gradf_build(2:2:end) = -100 .* x_aug(1:2:(end-1)).^2 + 100 .* x_aug(2:2:end);
+        gradf_build = gradf_build(1:end-1);
+
+end
 
 end
 
