@@ -1,9 +1,20 @@
 addpath('exact_builds')
 addpath('findiff_builds')
 rng(1)
-adapt = true;
+adapt = false;
 [f, gradf, Hessf] = exact_problem32();
 x = (rand(1e5, 1) - 0.5) * 5;
+
+gradfx_approx = findiff_grad_problem32(f, x, sqrt(eps), adapt);
+gradfx = gradf(x);
+res_grad = abs(gradfx_approx - gradfx);
+disp('Problem 25 - Approximation of the Gradient.')
+disp(['Adapt = ', num2str(adapt)])
+disp(['Maximum error: ', num2str(max(res_grad))])
+disp(['Median error: ', num2str(median(res_grad))])
+disp(['Mean error: ', num2str(mean(res_grad))])
+disp(['Standard deviation: ', num2str(std(res_grad))])
+
 Hessfx_approx = findiff_Hess_problem31_32(gradf, x, sqrt(eps), adapt);
 Hessfx = Hessf(x);
 
